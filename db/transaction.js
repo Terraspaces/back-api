@@ -279,6 +279,9 @@ const getTransactionsAggregation = (account_id) => {
         _id: 0,
         created_at: 0,
         updated_at: 0,
+        statistics_last_24h: 0,
+        statistics_last_7days: 0,
+        last_statistic_length: 0,
       },
     },
   ]);
