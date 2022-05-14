@@ -277,7 +277,6 @@ const getTransactionsAggregation = (account_id) => {
       $project: {
         statistics: 0,
         _id: 0,
-        name: 0,
         created_at: 0,
         updated_at: 0,
       },
