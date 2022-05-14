@@ -197,6 +197,12 @@ const getTransactionsAggregation = (account_id) => {
             { $subtract: ["$last_statistic_length", 1] },
           ],
         },
+        total_volume: {
+          $arrayElemAt: [
+            "$statistics.total_volume",
+            { $subtract: ["$last_statistic_length", 1] },
+          ],
+        },
         floor_price: {
           $arrayElemAt: [
             "$statistics.floor_price",
