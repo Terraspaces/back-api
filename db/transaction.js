@@ -179,6 +179,30 @@ const getTransactionsAggregation = (account_id) => {
     },
     {
       $addFields: {
+        total_items: {
+          $arrayElemAt: [
+            "$statistics.total_items",
+            { $subtract: ["$last_statistic_length", 1] },
+          ],
+        },
+        total_listed: {
+          $arrayElemAt: [
+            "$statistics.total_listed",
+            { $subtract: ["$last_statistic_length", 1] },
+          ],
+        },
+        total_owners: {
+          $arrayElemAt: [
+            "$statistics.total_owners",
+            { $subtract: ["$last_statistic_length", 1] },
+          ],
+        },
+        floor_price: {
+          $arrayElemAt: [
+            "$statistics.floor_price",
+            { $subtract: ["$last_statistic_length", 1] },
+          ],
+        },
         instant_volume: {
           $subtract: [
             {
@@ -252,6 +276,10 @@ const getTransactionsAggregation = (account_id) => {
     {
       $project: {
         statistics: 0,
+        _id: 0,
+        name: 0,
+        created_at: 0,
+        updated_at: 0,
       },
     },
   ]);
