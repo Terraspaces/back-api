@@ -145,7 +145,7 @@ const getTrendingCollectionData = async () => {
 
   const trending_collections = {};
   for (const c of collectionsArray) {
-    trending_collections[c.name] = c.statistics[c.statistics.length - 1];
+    trending_collections[c.name] = c;
   }
   return trending_collections;
 };
@@ -154,7 +154,8 @@ const getTransactionsForCollection = async (account_id) => {
   const aggregation = getTransactionsAggregation(account_id);
   const collectionsArray = await mongoose.connection
     .collection("collections")
-    .aggregate(aggregation);
+    .aggregate(aggregation)
+    .toArray();
 
   return collectionsArray;
 };
@@ -248,11 +249,11 @@ const getTransactionsAggregation = (account_id) => {
         floor_price_7: "$statistics_last_7days",
       },
     },
-    // {
-    //   $project: {
-    //     statistics: 0,
-    //   },
-    // },
+    {
+      $project: {
+        statistics: 0,
+      },
+    },
   ]);
   return aggregation;
 };
