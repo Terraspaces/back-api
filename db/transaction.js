@@ -52,126 +52,7 @@ const getObserveCollections = async () => {
 const CONTRACT_ACCOUNT_ID = "terraspaces-staking.near";
 
 const getTrendingCollectionData = async () => {
-  // const aggregation = [
-  //   {
-  //     $addFields: {
-  //       last_statistic_length: { $size: "$statistics" },
-  //     },
-  //   },
-  //   {
-  //     $addFields: {
-  //       instant_volume: {
-  //         $subtract: [
-  //           {
-  //             $arrayElemAt: [
-  //               "$statistics.total_volume",
-  //               { $subtract: ["$last_statistic_length", 1] },
-  //             ],
-  //           },
-  //           {
-  //             $arrayElemAt: [
-  //               "$statistics.total_volume",
-  //               { $subtract: ["$last_statistic_length", 2] },
-  //             ],
-  //           },
-  //         ],
-  //       },
-  //       day_volume: {
-  //         $subtract: [
-  //           {
-  //             $arrayElemAt: [
-  //               "$statistics.total_volume",
-  //               { $subtract: ["$last_statistic_length", 1] },
-  //             ],
-  //           },
-  //           {
-  //             $arrayElemAt: [
-  //               "$statistics.total_volume",
-  //               {
-  //                 $cond: {
-  //                   if: { $lt: ["$last_statistic_length", 144] },
-  //                   then: { $subtract: ["$last_statistic_length", 1] },
-  //                   else: 144 - 1,
-  //                 },
-  //               },
-  //             ],
-  //           },
-  //         ],
-  //       },
-  //       statistics_last_24h: {
-  //         $arrayElemAt: [
-  //           "$statistics.floor_price",
-  //           {
-  //             $cond: {
-  //               if: { $lt: ["$last_statistic_length", 144] },
-  //               then: { $subtract: ["$last_statistic_length", 1] },
-  //               else: 144 - 1,
-  //             },
-  //           },
-  //         ],
-  //       },
-  //       statistics_last_7days: {
-  //         $arrayElemAt: [
-  //           "$statistics.floor_price",
-  //           {
-  //             $cond: {
-  //               if: { $lt: ["$last_statistic_length", 1008] },
-  //               then: { $subtract: ["$last_statistic_length", 1] },
-  //               else: 1008 - 1,
-  //             },
-  //           },
-  //         ],
-  //       },
-  //     },
-  //   },
-  //   {
-  //     $addFields: {
-  //       floor_price_24: "$statistics_last_24h",
-  //       floor_price_7: "$statistics_last_7days",
-  //     },
-  //   },
-  //   {
-  //     $project: {
-  //       statistics: 0,
-  //     },
-  //   },
-  // ];
-
-  const aggregation = getTransactionsAggregation(null);
-  const collectionsArray = await mongoose.connection
-    .collection("collections")
-    .aggregate(aggregation)
-    .toArray();
-
-  const trending_collections = {};
-  for (const c of collectionsArray) {
-    trending_collections[c.name] = c;
-  }
-  return trending_collections;
-};
-
-const getTransactionsForCollection = async (account_id) => {
-  const aggregation = getTransactionsAggregation(account_id);
-  const collectionsArray = await mongoose.connection
-    .collection("collections")
-    .aggregate(aggregation)
-    .toArray();
-
-  return collectionsArray;
-};
-
-const getTransactionsAggregation = (account_id) => {
-  let aggregation = [];
-
-  if (account_id !== undefined && account_id !== null) {
-    aggregation.push({
-      $match: {
-        name: account_id,
-      },
-    });
-  }
-
-  aggregation = aggregation.concat([
+  const aggregation = [
     {
       $addFields: {
         last_statistic_length: { $size: "$statistics" },
@@ -290,8 +171,176 @@ const getTransactionsAggregation = (account_id) => {
         last_statistic_length: 0,
       },
     },
-  ]);
-  return aggregation;
+  ];
+  const collectionsArray = await mongoose.connection
+    .collection("collections")
+    .aggregate(aggregation)
+    .toArray();
+
+  const trending_collections = {};
+  for (const c of collectionsArray) {
+    trending_collections[c.name] = c;
+  }
+  return trending_collections;
+};
+
+const getTransactionsForCollection = async (account_id) => {
+  const aggregation = [
+    {
+      $match: { name: account_id },
+    },
+    {
+      $addFields: {
+        last_statistic_length: { $size: "$statistics" },
+      },
+    },
+    {
+      $addFields: {
+        statistics: {
+          $map: {
+            input: "$statistics",
+            as: "stat",
+            in: {
+              total_items: "$$stat.total_items",
+              total_listed: "$$stat.total_listed",
+              total_owners: "$$stat.total_owners",
+              total_volume: "$$stat.total_volume",
+              floor_price: "$$stat.floor_price",
+              floor_price_24: {
+                $arrayElemAt: [
+                  "$statistics.floor_price",
+                  {
+                    $cond: {
+                      if: {
+                        $lt: [
+                          {
+                            $subtract: [
+                              "$last_statistic_length",
+                              { $indexOfArray: ["$statistics", "$$stat"] },
+                            ],
+                          },
+                          //"$last_statistic_length",
+                          144,
+                        ],
+                      },
+                      // then: { $subtract: ["$last_statistic_length", 1] },
+                      then: {
+                        $subtract: [
+                          { $indexOfArray: ["$statistics", "$$stat"] },
+                          1,
+                        ],
+                      },
+                      else: 144 - 1,
+                    },
+                  },
+                ],
+              },
+              floor_price_7: {
+                $arrayElemAt: [
+                  "$statistics.floor_price",
+                  {
+                    $cond: {
+                      if: {
+                        $lt: [
+                          {
+                            $subtract: [
+                              "$last_statistic_length",
+                              { $indexOfArray: ["$statistics", "$$stat"] },
+                            ],
+                          },
+                          1008,
+                        ],
+                      },
+                      then: {
+                        $subtract: [
+                          {
+                            $subtract: [
+                              "$last_statistic_length",
+                              { $indexOfArray: ["$statistics", "$$stat"] },
+                            ],
+                          },
+                          1,
+                        ],
+                      },
+                      else: 1008 - 1,
+                    },
+                  },
+                ],
+              },
+              day_volume: {
+                $subtract: [
+                  "$$stat.total_volume",
+                  {
+                    $arrayElemAt: [
+                      "$statistics.total_volume",
+                      {
+                        $cond: {
+                          if: {
+                            $lt: [
+                              {
+                                $subtract: [
+                                  "$last_statistic_length",
+                                  { $indexOfArray: ["$statistics", "$$stat"] },
+                                ],
+                              },
+                              144,
+                            ],
+                          },
+                          then: "$last_statistic_length",
+                          else: {
+                            $add: [
+                              { $indexOfArray: ["$statistics", "$$stat"] },
+                              144,
+                            ],
+                          },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+
+              instant_volume: {
+                $subtract: [
+                  "$$stat.total_volume",
+                  {
+                    $cond: {
+                      if: {
+                        $lt: [
+                          {
+                            $subtract: [
+                              { $indexOfArray: ["$statistics", "$$stat"] },
+                              1,
+                            ],
+                          },
+                          0,
+                        ],
+                      },
+                      then: { $indexOfArray: ["$statistics", "$$stat"] },
+                      else: {
+                        $subtract: [
+                          { $indexOfArray: ["$statistics", "$$stat"] },
+                          1,
+                        ],
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  ];
+  const collectionsArray = await mongoose.connection
+    .collection("collections")
+    .aggregate(aggregation)
+    .toArray();
+
+  const { statistics } = collectionsArray[0];
+
+  return statistics;
 };
 
 let near;
