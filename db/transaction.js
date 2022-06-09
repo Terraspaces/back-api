@@ -1,55 +1,19 @@
 const mongoose = require("mongoose");
-const { connect, keyStores } = require("near-api-js");
+// const { connect, keyStores } = require("near-api-js");
 
-const connectionString = process.env.NEAR_DB_CONNECTION;
+// const homedir = require("os").homedir();
+// const CREDENTIALS_DIR = ".near-credentials";
+// const credentialsPath = require("path").join(homedir, CREDENTIALS_DIR);
+// const keyStore = new keyStores.UnencryptedFileSystemKeyStore(credentialsPath);
 
-const homedir = require("os").homedir();
-const CREDENTIALS_DIR = ".near-credentials";
-const credentialsPath = require("path").join(homedir, CREDENTIALS_DIR);
-const keyStore = new keyStores.UnencryptedFileSystemKeyStore(credentialsPath);
+// const config = {
+//   keyStore,
+//   networkId: process.env.NETWORK_ID,
+//   nodeUrl: process.env.NODE_URL,
+//   headers: {},
+// };
 
-const config = {
-  keyStore,
-  networkId: process.env.NETWORK_ID,
-  nodeUrl: process.env.NODE_URL,
-  headers: {},
-};
-
-const getObserveCollections = async () => {
-  try {
-    // get collections from contract
-    const rawResult = await near.connection.provider.query({
-      request_type: "call_function",
-      account_id: CONTRACT_ACCOUNT_ID,
-      method_name: "get_observe_ids",
-      args_base64: btoa(`{}`),
-      finality: "optimistic",
-    });
-    const results = JSON.parse(Buffer.from(rawResult.result).toString());
-
-    const rawResult1 = await near.connection.provider.query({
-      request_type: "call_function",
-      account_id: CONTRACT_ACCOUNT_ID,
-      method_name: "get_nft_contract_ids",
-      args_base64: btoa(`{}`),
-      finality: "optimistic",
-    });
-    const results1 = JSON.parse(Buffer.from(rawResult1.result).toString());
-
-    for (let i = 0; i < results1.length; i++) {
-      if (!results.includes(results1[i])) {
-        results.push(results1[i]);
-      }
-    }
-
-    return results;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
-const CONTRACT_ACCOUNT_ID = "terraspaces-staking.near";
+// const CONTRACT_ACCOUNT_ID = "terraspaces-staking.near";
 
 const getTrendingCollectionData = async () => {
   const aggregation = [
@@ -187,18 +151,111 @@ const getTrendingCollectionData = async () => {
 const getTransactionsForCollection = async (account_id) => {
   const aggregation = [
     {
-      $match: { name: account_id },
+      $facet: {
+        minMax: [
+          {
+            $match: { name: account_id },
+          },
+          {
+            $project: {
+              created_at: 0,
+              updated_at: 0,
+            },
+          },
+          {
+            $addFields: {
+              firstDate: { $min: "$statistics.created_at" },
+            },
+          },
+          {
+            $unwind: "$statistics",
+          },
+          {
+            $addFields: {
+              created_at_date: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$statistics.created_at",
+                },
+              },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$statistics.created_at",
+                },
+              },
+              list: {
+                $push: "$$ROOT",
+              },
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $addFields: {
+              min: {
+                $first: {
+                  $filter: {
+                    input: "$list.statistics",
+                    cond: {
+                      $eq: [
+                        "$$this.created_at",
+                        { $min: "$list.statistics.created_at" },
+                      ],
+                    },
+                  },
+                },
+              },
+              max: {
+                $first: {
+                  $filter: {
+                    input: "$list.statistics",
+                    cond: {
+                      $eq: [
+                        "$$this.created_at",
+                        { $max: "$list.statistics.created_at" },
+                      ],
+                    },
+                  },
+                },
+              },
+              minDate: { $min: "$list.statistics.created_at" },
+              maxDate: { $max: "$list.statistics.created_at" },
+              firstDate: { $max: "$list.firstDate" },
+            },
+          },
+          {
+            $project: {
+              list: 0,
+            },
+          },
+        ],
+        list: [
+          {
+            $match: { name: account_id },
+          },
+          {
+            $project: {
+              created_at: 0,
+              updated_at: 0,
+            },
+          },
+        ],
+      },
     },
     {
-      $addFields: {
-        last_statistic_length: { $size: "$statistics" },
-      },
+      $unwind: "$list",
     },
     {
       $addFields: {
         statistics: {
           $map: {
-            input: "$statistics",
+            input: "$list.statistics",
             as: "stat",
             in: {
               total_items: "$$stat.total_items",
@@ -206,121 +263,294 @@ const getTransactionsForCollection = async (account_id) => {
               total_owners: "$$stat.total_owners",
               total_volume: "$$stat.total_volume",
               floor_price: "$$stat.floor_price",
-              floor_price_24: {
-                $arrayElemAt: [
-                  "$statistics.floor_price",
+              floor_price: "$$stat.floor_price",
+              created_at: "$$stat.created_at",
+              created_at_date: {
+                $concat: [
                   {
-                    $cond: {
-                      if: {
-                        $lt: [
-                          {
-                            $subtract: [
-                              "$last_statistic_length",
-                              { $indexOfArray: ["$statistics", "$$stat"] },
-                            ],
-                          },
-                          //"$last_statistic_length",
-                          144,
-                        ],
-                      },
-                      // then: { $subtract: ["$last_statistic_length", 1] },
-                      then: {
-                        $subtract: [
-                          { $indexOfArray: ["$statistics", "$$stat"] },
-                          1,
-                        ],
-                      },
-                      else: 144 - 1,
+                    $dateToString: {
+                      format: "%Y-%m-%d",
+                      date: "$$stat.created_at",
                     },
                   },
+                  "",
                 ],
               },
+              floor_price_24: {
+                $getField: {
+                  field: "floor_price",
+                  input: {
+                    $arrayElemAt: [
+                      "$list.statistics",
+                      {
+                        $indexOfArray: [
+                          "$list.statistics.created_at",
+                          {
+                            $getField: {
+                              field: "minDate",
+                              input: {
+                                $arrayElemAt: [
+                                  "$minMax",
+                                  {
+                                    $indexOfArray: [
+                                      "$minMax._id",
+                                      {
+                                        $dateToString: {
+                                          format: "%Y-%m-%d",
+                                          date: "$$stat.created_at",
+                                        },
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              },
               floor_price_7: {
-                $arrayElemAt: [
-                  "$statistics.floor_price",
-                  {
-                    $cond: {
-                      if: {
-                        $lt: [
-                          {
-                            $subtract: [
-                              "$last_statistic_length",
-                              { $indexOfArray: ["$statistics", "$$stat"] },
-                            ],
+                $getField: {
+                  field: "floor_price",
+                  input: {
+                    $getField: {
+                      field: "min",
+                      input: {
+                        $max: {
+                          $filter: {
+                            input: "$minMax",
+                            cond: {
+                              $and: [
+                                {
+                                  $lte: [
+                                    "$$this.minDate",
+                                    {
+                                      $cond: {
+                                        if: {
+                                          $lte: [
+                                            {
+                                              $dateSubtract: {
+                                                startDate: "$$stat.created_at",
+                                                unit: "week",
+                                                amount: 1,
+                                              },
+                                            },
+                                            {
+                                              $getField: {
+                                                field: "firstDate",
+                                                input: {
+                                                  $arrayElemAt: [
+                                                    "$minMax",
+                                                    {
+                                                      $indexOfArray: [
+                                                        "$minMax._id",
+                                                        {
+                                                          $dateToString: {
+                                                            format: "%Y-%m-%d",
+                                                            date: "$$stat.created_at",
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  ],
+                                                },
+                                              },
+                                            },
+                                          ],
+                                        },
+                                        then: {
+                                          $getField: {
+                                            field: "firstDate",
+                                            input: {
+                                              $arrayElemAt: [
+                                                "$minMax",
+                                                {
+                                                  $indexOfArray: [
+                                                    "$minMax._id",
+                                                    {
+                                                      $dateToString: {
+                                                        format: "%Y-%m-%d",
+                                                        date: "$$stat.created_at",
+                                                      },
+                                                    },
+                                                  ],
+                                                },
+                                              ],
+                                            },
+                                          },
+                                        },
+                                        else: {
+                                          $dateSubtract: {
+                                            startDate: "$$stat.created_at",
+                                            unit: "week",
+                                            amount: 1,
+                                          },
+                                        },
+                                      },
+                                    },
+                                  ],
+                                },
+
+                                {
+                                  $lte: [
+                                    "$$this.maxDate",
+                                    {
+                                      $cond: {
+                                        if: {
+                                          $lt: [
+                                            {
+                                              $dateSubtract: {
+                                                startDate: "$$stat.created_at",
+                                                unit: "day",
+                                                amount: 6,
+                                              },
+                                            },
+                                            {
+                                              $getField: {
+                                                field: "firstDate",
+                                                input: {
+                                                  $arrayElemAt: [
+                                                    "$minMax",
+                                                    {
+                                                      $indexOfArray: [
+                                                        "$minMax._id",
+                                                        {
+                                                          $dateToString: {
+                                                            format: "%Y-%m-%d",
+                                                            date: "$$stat.created_at",
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  ],
+                                                },
+                                              },
+                                            },
+                                          ],
+                                        },
+                                        then: {
+                                          $getField: {
+                                            field: "firstDate",
+                                            input: {
+                                              $arrayElemAt: [
+                                                "$minMax",
+                                                {
+                                                  $indexOfArray: [
+                                                    "$minMax._id",
+                                                    {
+                                                      $dateToString: {
+                                                        format: "%Y-%m-%d",
+                                                        date: "$$stat.created_at",
+                                                      },
+                                                    },
+                                                  ],
+                                                },
+                                              ],
+                                            },
+                                          },
+                                        },
+                                        else: {
+                                          $dateSubtract: {
+                                            startDate: "$$stat.created_at",
+                                            unit: "day",
+                                            amount: 6,
+                                          },
+                                        },
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
                           },
-                          1008,
-                        ],
+                        },
                       },
-                      then: {
-                        $subtract: [
-                          {
-                            $subtract: [
-                              "$last_statistic_length",
-                              { $indexOfArray: ["$statistics", "$$stat"] },
-                            ],
-                          },
-                          1,
-                        ],
-                      },
-                      else: 1008 - 1,
                     },
                   },
-                ],
+                },
               },
               day_volume: {
                 $subtract: [
                   "$$stat.total_volume",
                   {
-                    $arrayElemAt: [
-                      "$statistics.total_volume",
-                      {
-                        $cond: {
-                          if: {
-                            $lt: [
+                    $getField: {
+                      field: "total_volume",
+                      input: {
+                        $arrayElemAt: [
+                          "$list.statistics",
+                          {
+                            $indexOfArray: [
+                              "$list.statistics.created_at",
                               {
-                                $subtract: [
-                                  "$last_statistic_length",
-                                  { $indexOfArray: ["$statistics", "$$stat"] },
-                                ],
+                                $getField: {
+                                  field: "minDate",
+                                  input: {
+                                    $arrayElemAt: [
+                                      "$minMax",
+                                      {
+                                        $indexOfArray: [
+                                          "$minMax._id",
+                                          {
+                                            $dateToString: {
+                                              format: "%Y-%m-%d",
+                                              date: "$$stat.created_at",
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    ],
+                                  },
+                                },
                               },
-                              144,
                             ],
                           },
-                          then: "$last_statistic_length",
-                          else: {
-                            $add: [
-                              { $indexOfArray: ["$statistics", "$$stat"] },
-                              144,
-                            ],
-                          },
-                        },
+                        ],
                       },
-                    ],
+                    },
                   },
                 ],
               },
-
               instant_volume: {
                 $subtract: [
                   "$$stat.total_volume",
                   {
-                    $cond: {
-                      if: {
-                        $lt: [
+                    $getField: {
+                      field: "total_volume",
+                      input: {
+                        $arrayElemAt: [
+                          "$list.statistics",
                           {
-                            $subtract: [
-                              { $indexOfArray: ["$statistics", "$$stat"] },
-                              1,
-                            ],
+                            $cond: {
+                              if: {
+                                $lt: [
+                                  {
+                                    $indexOfArray: [
+                                      "$list.statistics",
+                                      "$$stat",
+                                    ],
+                                  },
+                                  1,
+                                ],
+                              },
+                              then: {
+                                $indexOfArray: ["$list.statistics", "$$stat"],
+                              },
+                              else: {
+                                $subtract: [
+                                  {
+                                    $indexOfArray: [
+                                      "$list.statistics",
+                                      "$$stat",
+                                    ],
+                                  },
+                                  1,
+                                ],
+                              },
+                            },
                           },
-                          0,
-                        ],
-                      },
-                      then: { $indexOfArray: ["$statistics", "$$stat"] },
-                      else: {
-                        $subtract: [
-                          { $indexOfArray: ["$statistics", "$$stat"] },
-                          1,
                         ],
                       },
                     },
@@ -332,21 +562,26 @@ const getTransactionsForCollection = async (account_id) => {
         },
       },
     },
+    {
+      $project: { list: 0, minMax: 0 },
+    },
   ];
+
   const collectionsArray = await mongoose.connection
     .collection("collections")
-    .aggregate(aggregation)
+    .aggregate(aggregation, { allowDiskUse: true })
     .toArray();
 
+  console.log("keys: ", Object.keys(collectionsArray[0]));
   const { statistics } = collectionsArray[0];
 
   return statistics;
 };
 
-let near;
-connect(config).then((result) => {
-  near = result;
-});
+// let near;
+// connect(config).then((result) => {
+//   near = result;
+// });
 
 module.exports = {
   getTrendingCollectionData: getTrendingCollectionData,
