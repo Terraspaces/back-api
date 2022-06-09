@@ -29,7 +29,7 @@ const getDrops = async ({ skip = 0, limit = 500 }) => {
   return dropsArray;
 };
 
-const like = async (drop_name, account_id) => {
+const like = async ({ drop_name, account_id }) => {
   try {
     const updateResults = await mongoose.connection
       .collection(collection_name)
@@ -43,7 +43,7 @@ const like = async (drop_name, account_id) => {
   return;
 };
 
-const unlike = async (drop_name, account_id) => {
+const unlike = async ({ drop_name, account_id }) => {
   try {
     const updateResults = await mongoose.connection
       .collection(collection_name)
