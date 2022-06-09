@@ -1,55 +1,19 @@
 const mongoose = require("mongoose");
-const { connect, keyStores } = require("near-api-js");
+// const { connect, keyStores } = require("near-api-js");
 
-const connectionString = process.env.NEAR_DB_CONNECTION;
+// const homedir = require("os").homedir();
+// const CREDENTIALS_DIR = ".near-credentials";
+// const credentialsPath = require("path").join(homedir, CREDENTIALS_DIR);
+// const keyStore = new keyStores.UnencryptedFileSystemKeyStore(credentialsPath);
 
-const homedir = require("os").homedir();
-const CREDENTIALS_DIR = ".near-credentials";
-const credentialsPath = require("path").join(homedir, CREDENTIALS_DIR);
-const keyStore = new keyStores.UnencryptedFileSystemKeyStore(credentialsPath);
+// const config = {
+//   keyStore,
+//   networkId: process.env.NETWORK_ID,
+//   nodeUrl: process.env.NODE_URL,
+//   headers: {},
+// };
 
-const config = {
-  keyStore,
-  networkId: process.env.NETWORK_ID,
-  nodeUrl: process.env.NODE_URL,
-  headers: {},
-};
-
-const getObserveCollections = async () => {
-  try {
-    // get collections from contract
-    const rawResult = await near.connection.provider.query({
-      request_type: "call_function",
-      account_id: CONTRACT_ACCOUNT_ID,
-      method_name: "get_observe_ids",
-      args_base64: btoa(`{}`),
-      finality: "optimistic",
-    });
-    const results = JSON.parse(Buffer.from(rawResult.result).toString());
-
-    const rawResult1 = await near.connection.provider.query({
-      request_type: "call_function",
-      account_id: CONTRACT_ACCOUNT_ID,
-      method_name: "get_nft_contract_ids",
-      args_base64: btoa(`{}`),
-      finality: "optimistic",
-    });
-    const results1 = JSON.parse(Buffer.from(rawResult1.result).toString());
-
-    for (let i = 0; i < results1.length; i++) {
-      if (!results.includes(results1[i])) {
-        results.push(results1[i]);
-      }
-    }
-
-    return results;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
-const CONTRACT_ACCOUNT_ID = "terraspaces-staking.near";
+// const CONTRACT_ACCOUNT_ID = "terraspaces-staking.near";
 
 const getTrendingCollectionData = async () => {
   const aggregation = [
@@ -300,6 +264,7 @@ const getTransactionsForCollection = async (account_id) => {
               total_volume: "$$stat.total_volume",
               floor_price: "$$stat.floor_price",
               floor_price: "$$stat.floor_price",
+              created_at: "$$stat.created_at",
               created_at_date: {
                 $concat: [
                   {
@@ -613,10 +578,10 @@ const getTransactionsForCollection = async (account_id) => {
   return statistics;
 };
 
-let near;
-connect(config).then((result) => {
-  near = result;
-});
+// let near;
+// connect(config).then((result) => {
+//   near = result;
+// });
 
 module.exports = {
   getTrendingCollectionData: getTrendingCollectionData,

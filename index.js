@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const db = require("./db/db");
 const transaction = require("./db/transaction");
+const drop = require("./db/drop");
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -35,6 +36,31 @@ app.post("/statistic_data", async (req, res) => {
     req.body.account_id
   );
   res.send(results);
+});
+
+app.get("/drops", async (req, res) => {
+  let { skip, limit } = req.query;
+  const drops = await drop.getDrops({
+    skip,
+    limit,
+  });
+  res.send(drops);
+});
+app.post("/drops/like", async (req, res) => {
+  const { drop_name, account_id } = req.body;
+  await drop.like({
+    drop_name,
+    account_id,
+  });
+  res.send();
+});
+app.post("/drops/unlike", async (req, res) => {
+  const { drop_name, account_id } = req.body;
+  await drop.unlike({
+    drop_name,
+    account_id,
+  });
+  res.send();
 });
 
 const port = process.env.PORT || 4002;
