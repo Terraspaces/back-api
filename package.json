@@ -13,7 +13,7 @@
     "fetch": "^1.1.0",
     "mongoose": "^6.3.3",
     "near-api-js": "^0.44.2",
-    "node-fetch": "^3.2.4"
+    "node-fetch": "2"
   },
   "devDependencies": {
     "eslint": "8.13.0",

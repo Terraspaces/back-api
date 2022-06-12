@@ -2,70 +2,50 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const db = require("./db/db");
-const transaction = require("./db/transaction");
-const drop = require("./db/drop");
 
-const app = express();
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+const apiDrop = require("./api/api-drop");
+const apiStatistic = require("./api/api-statistic");
+const apiReferral = require("./api/api-referral");
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "OPTIONS, GET, POST, PUT, PATCH, DELETE"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
+const expressApi = express();
+setMiddlewares();
 
-var corsOptions = {
-  // origin: "http://35.75.88.169:4000",
-  origin: process.env.ORIGIN,
-  optionsSuccessStatus: 200, // For legacy browser support
-};
-app.use(cors(corsOptions));
+apiStatistic.setEndpoints(expressApi);
+apiDrop.setEndpoints(expressApi);
+apiReferral.setEndpoints(expressApi);
 
-app.post("/trending_collection_data", async (req, res) => {
-  const results = await transaction.getTrendingCollectionData();
-  res.send(results);
-});
+start();
 
-app.post("/statistic_data", async (req, res) => {
-  const results = await transaction.getTransactionsForCollection(
-    req.body.account_id
-  );
-  res.send(results);
-});
+function setMiddlewares() {
+  expressApi.use(express.urlencoded({ extended: false }));
+  expressApi.use(express.json());
 
-app.get("/drops", async (req, res) => {
-  let { skip, limit } = req.query;
-  const drops = await drop.getDrops({
-    skip,
-    limit,
+  expressApi.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "OPTIONS, GET, POST, PUT, PATCH, DELETE"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+    next();
   });
-  res.send(drops);
-});
-app.post("/drops/like", async (req, res) => {
-  const { drop_name, account_id } = req.body;
-  await drop.like({
-    drop_name,
-    account_id,
-  });
-  res.send();
-});
-app.post("/drops/unlike", async (req, res) => {
-  const { drop_name, account_id } = req.body;
-  await drop.unlike({
-    drop_name,
-    account_id,
-  });
-  res.send();
-});
 
-const port = process.env.PORT || 4002;
+  const corsOptions = {
+    // origin: "http://35.75.88.169:4000",
+    origin: process.env.ORIGIN,
+    optionsSuccessStatus: 200, // For legacy browser support
+  };
+  expressApi.use(cors(corsOptions));
+}
 
-app.listen(port, async () => {
-  console.log(`Server running on port ${port}, http://localhost:${port}`);
-  await db.init();
-});
+function start(expressApi) {
+  const port = process.env.PORT || 4002;
+
+  expressApi.listen(port, async () => {
+    console.log(`Server running on port ${port}, http://localhost:${port}`);
+    await db.init();
+  });
+}
