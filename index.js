@@ -14,7 +14,7 @@ apiStatistic.setEndpoints(expressApi);
 apiDrop.setEndpoints(expressApi);
 apiReferral.setEndpoints(expressApi);
 
-start();
+start(expressApi);
 
 function setMiddlewares() {
   expressApi.use(express.urlencoded({ extended: false }));
@@ -41,10 +41,10 @@ function setMiddlewares() {
   expressApi.use(cors(corsOptions));
 }
 
-function start(expressApi) {
+function start(api) {
   const port = process.env.PORT || 4002;
 
-  expressApi.listen(port, async () => {
+  api.listen(port, async () => {
     console.log(`Server running on port ${port}, http://localhost:${port}`);
     await db.init();
   });
