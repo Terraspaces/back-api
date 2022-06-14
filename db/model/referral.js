@@ -6,6 +6,7 @@ const referralSchema = new mongoose.Schema(
     referral_wallet_id: String,
     collection_name: String,
     referrals: [],
+    approved: Boolean,
   },
   {
     timestamps: {
