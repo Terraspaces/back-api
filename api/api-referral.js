@@ -5,11 +5,6 @@ const setEndpoints = (api) => {
     await referralDb.add(req.body);
     res.send();
   });
-  api.post("/referral/:id/approve", async (req, res) => {
-    const { id } = req.params;
-    await referralDb.approve(id);
-    res.send();
-  });
 };
 
 module.exports = { setEndpoints };
