@@ -33,7 +33,7 @@ const exists = async (collection) => {
   if (collection == "terraspaces") return true;
 
   const results = await mongoose.connection
-    .collection(collection)
+    .collection(collection_name)
     .find({ name: collection })
     .toArray();
   if (!results) return false;
@@ -85,5 +85,5 @@ module.exports = {
   get_drops,
   like,
   unlike,
-   exists,
+  exists,
 };
