@@ -49,10 +49,29 @@ const get_stats = async (wallet_id) => {
           submitted: {
             $sum: 1,
           },
+          pending: {
+            $sum: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $eq: ["$approved", false] },
+                    { $eq: ["$rejected", false] },
+                  ],
+                },
+                then: "$amount",
+                else: 0,
+              },
+            },
+          },
           approved: {
             $sum: {
               $cond: {
-                if: { $eq: ["$approved", true] },
+                if: {
+                  $and: [
+                    { $eq: ["$approved", true] },
+                    { $eq: ["$rejected", false] },
+                  ],
+                },
                 then: 1,
                 else: 0,
               },
@@ -61,7 +80,12 @@ const get_stats = async (wallet_id) => {
           amount: {
             $sum: {
               $cond: {
-                if: { $eq: ["$approved", true] },
+                if: {
+                  $and: [
+                    { $eq: ["$approved", true] },
+                    { $eq: ["$rejected", false] },
+                  ],
+                },
                 then: "$amount",
                 else: 0,
               },
@@ -72,7 +96,13 @@ const get_stats = async (wallet_id) => {
     ];
     const r = await referralModel.aggregate(aggregation_pipeline);
     if (!r || r.length <= 0)
-      return { submitted: 0, approved: 0, amount: 0, _id: wallet_id };
+      return {
+        submitted: 0,
+        approved: 0,
+        amount: 0,
+        pending: 0,
+        _id: wallet_id,
+      };
 
     return r[0];
   } catch (error) {
