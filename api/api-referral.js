@@ -24,7 +24,7 @@ const setEndpoints = (api) => {
     res.send();
   });
 
-  api.post("/referral/:wallet_id/stats", async (req, res) => {
+  api.get("/referral/:wallet_id/stats", async (req, res) => {
     // const { collection_name } = req.body;
     const { wallet_id } = req.params;
 
