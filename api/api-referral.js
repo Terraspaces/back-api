@@ -23,6 +23,15 @@ const setEndpoints = (api) => {
     await referral_db.add(req.body);
     res.send();
   });
+
+  api.post("/referral/:wallet_id/stats", async (req, res) => {
+    // const { collection_name } = req.body;
+    const { wallet_id } = req.params;
+
+    const stats = await referral_db.get_stats(wallet_id);
+
+    res.send(stats);
+  });
 };
 
 module.exports = { setEndpoints };

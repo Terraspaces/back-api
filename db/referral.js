@@ -35,4 +35,50 @@ const exists = async ({
   return;
 };
 
-module.exports = { add, exists };
+const get_stats = async (wallet_id) => {
+  try {
+    const aggregation_pipeline = [
+      {
+        $match: {
+          referred_wallet_id: wallet_id,
+        },
+      },
+      {
+        $group: {
+          _id: "$referred_wallet_id",
+          submitted: {
+            $sum: 1,
+          },
+          approved: {
+            $sum: {
+              $cond: {
+                if: { $eq: ["$approved", true] },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+          amount: {
+            $sum: {
+              $cond: {
+                if: { $eq: ["$approved", true] },
+                then: "$amount",
+                else: 0,
+              },
+            },
+          },
+        },
+      },
+    ];
+    const r = await referralModel.aggregate(aggregation_pipeline);
+    if (!r || r.length <= 0) return { submitted: 0, approved: 0, amount: 0 _id: wallet_id};
+
+    return r[0];
+  } catch (error) {
+    console.error(`${add.name} error:`, error);
+    throw new Error("could not add referral");
+  }
+  return;
+};
+
+module.exports = { add, exists, get_stats };
