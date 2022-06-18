@@ -71,7 +71,8 @@ const get_stats = async (wallet_id) => {
       },
     ];
     const r = await referralModel.aggregate(aggregation_pipeline);
-    if (!r || r.length <= 0) return { submitted: 0, approved: 0, amount: 0 _id: wallet_id};
+    if (!r || r.length <= 0)
+      return { submitted: 0, approved: 0, amount: 0, _id: wallet_id };
 
     return r[0];
   } catch (error) {
