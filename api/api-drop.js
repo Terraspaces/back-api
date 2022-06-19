@@ -40,7 +40,7 @@ const setEndpoints = (api) => {
     res.send();
   });
 
-  api.post("/drops/sorted", async (req, res) => {
+  api.get("/drops/sorted", async (req, res) => {
     const drops_sorted = await dropDb.get_drops_sorted();
     res.send(drops_sorted);
   });
