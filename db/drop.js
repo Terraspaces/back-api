@@ -23,6 +23,7 @@ const get_drops_sorted = async () => {
       .collection(collection_name)
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
+    dropsArray.push({ name: "terraspaces" });
   } catch (error) {
     console.error(`${like.name} error:`, error);
   }
