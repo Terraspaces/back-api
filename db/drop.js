@@ -23,7 +23,6 @@ const get_drops_sorted = async () => {
       .collection(collection_name)
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-    dropsArray.push({ name: "terraspaces" });
   } catch (error) {
     console.error(`${like.name} error:`, error);
   }
@@ -60,8 +59,6 @@ const get_drops = async ({ skip = 0, limit = 500 }) => {
 };
 
 const exists = async (collection) => {
-  if (collection == "terraspaces") return true;
-
   const results = await mongoose.connection
     .collection(collection_name)
     .find({ name: collection })

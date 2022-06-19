@@ -1,4 +1,5 @@
 const dropDb = require("../db/drop");
+const transactionDb = require("../db/transaction");
 
 const getQueryParams = () => {
   let skip = 0,
@@ -42,7 +43,17 @@ const setEndpoints = (api) => {
 
   api.get("/drops/sorted", async (req, res) => {
     const drops_sorted = await dropDb.get_drops_sorted();
-    res.send(drops_sorted);
+
+    const collections_sorted = await transactionDb.get_collections_name();
+
+    const result = collections_sorted.concat(drops_sorted);
+
+    const result_sorted = result.sort((a, b) => {
+      if (a.name > b.name) return -1;
+      return 1;
+    });
+
+    res.send(result_sorted);
   });
 };
 
