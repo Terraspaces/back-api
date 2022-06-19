@@ -1,5 +1,6 @@
 const referral_db = require("../db/referral");
 const drop_db = require("../db/drop");
+const transaction_db = require("../db/transaction");
 const { error } = require("./helper/http");
 
 const setEndpoints = (api) => {
@@ -7,7 +8,9 @@ const setEndpoints = (api) => {
     const { collection_name } = req.body;
 
     const drop_exists = await drop_db.exists(collection_name);
-    if (!drop_exists) {
+    const collection_exists = await transaction_db.exists(collection_name);
+
+    if (!drop_exists && !collection_exists) {
       console.log("collection_name", collection_name);
       error(res, "collection doesn't exists", 403);
       return;

@@ -611,8 +611,19 @@ const get_collections_name = async () => {
   return collectionsArray;
 };
 
+const exists = async (collection) => {
+  const results = await mongoose.connection
+    .collection(collection_name)
+    .find({ name: collection })
+    .toArray();
+  if (!results) return false;
+  if (results.length <= 0) return false;
+  return true;
+};
+
 module.exports = {
   getTrendingCollectionData,
   getTransactionsForCollection,
   get_collections_name,
+  exists,
 };
