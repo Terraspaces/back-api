@@ -30,6 +30,7 @@ const setEndpoints = (api) => {
     });
     res.send();
   });
+
   api.post("/drops/unlike", async (req, res) => {
     const { drop_name, account_id } = req.body;
     await dropDb.unlike({
@@ -37,6 +38,11 @@ const setEndpoints = (api) => {
       account_id,
     });
     res.send();
+  });
+
+  api.post("/drops/sorted", async (req, res) => {
+    const drops_sorted = await dropDb.get_drops_sorted();
+    res.send(drops_sorted);
   });
 };
 
