@@ -49,8 +49,8 @@ const setEndpoints = (api) => {
     const result = collections_sorted.concat(drops_sorted);
 
     const result_sorted = result.sort((a, b) => {
-      if (a.name > b.name) return -1;
-      return 1;
+      if (a.name > b.name) return 1;
+      return -1;
     });
 
     res.send(result_sorted);
