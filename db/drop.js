@@ -8,7 +8,7 @@ const get_drops_sorted = async () => {
     const aggregation = [
       {
         $sort: {
-          name: -1,
+          name: 1,
         },
       },
       {
