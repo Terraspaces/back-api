@@ -39,8 +39,9 @@ const setEndpoints = (api) => {
         }
       );
       if (!response.ok) {
-        throw new Error(`unexpected error`);
         console.error(`error calculate ${response}`);
+        error(res, "error calculate", 502);
+        return;
       }
       res.send();
     } catch (error) {
