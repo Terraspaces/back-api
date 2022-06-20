@@ -4,7 +4,10 @@ const referralModel = require("./model/referral");
 const add = async (r) => {
   try {
     // Validate collection name against our drop table
-    const referral = new referralModel({ ...{ approved: false }, ...r });
+    const referral = new referralModel({
+      ...{ approved: false, amount: 0 },
+      ...r,
+    });
     const saved_referral = await referral.save();
     return saved_referral;
   } catch (error) {

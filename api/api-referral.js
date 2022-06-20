@@ -29,8 +29,9 @@ const setEndpoints = (api) => {
 
       const { _id } = await referral_db.add(req.body);
 
+      console.log("process.env.TRANSACTIONS_API", process.env.TRANSACTIONS_API);
       const response = await fetch(
-        `${process.env.TRANSACTIONS_API}/calculate/${_id}`,
+        `${process.env.TRANSACTIONS_API}/referral/calculate/${_id}`,
         {
           method: "POST",
           headers: {
@@ -38,8 +39,11 @@ const setEndpoints = (api) => {
           },
         }
       );
+
+      const asd = await response.json();
+      console.log("asd", asd);
       if (!response.ok) {
-        console.error(`error calculate ${response}`);
+        console.error(`error calculate ${JSON.stringify(response)}`);
         error(res, "error calculate", 502);
         return;
       }
