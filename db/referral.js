@@ -5,12 +5,12 @@ const add = async (r) => {
   try {
     // Validate collection name against our drop table
     const referral = new referralModel({ ...{ approved: false }, ...r });
-    await referral.save();
+    const saved_referral = await referral.save();
+    return saved_referral;
   } catch (error) {
     console.error(`${add.name} error:`, error);
     throw new Error("could not add referral");
   }
-  return;
 };
 
 const exists = async ({
@@ -40,12 +40,12 @@ const get_stats = async (wallet_id) => {
     const aggregation_pipeline = [
       {
         $match: {
-          referred_wallet_id: wallet_id,
+          referral_wallet_id: wallet_id,
         },
       },
       {
         $group: {
-          _id: "$referred_wallet_id",
+          _id: "$referral_wallet_id",
           submitted: {
             $sum: 1,
           },
