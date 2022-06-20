@@ -40,10 +40,10 @@ const setEndpoints = (api) => {
         }
       );
 
-      const asd = await response.json();
-      console.log("asd", asd);
-      if (!response.ok) {
-        console.error(`error calculate ${JSON.stringify(response)}`);
+      if (response.status != 200) {
+        console.error(
+          `error calculate ${JSON.stringify(await response.json())}`
+        );
         error(res, "error calculate", 502);
         return;
       }
