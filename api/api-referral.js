@@ -9,7 +9,7 @@ const fetch = (...args) =>
 const setEndpoints = (api) => {
   api.post("/referral", async (req, res) => {
     try {
-      const { collection_name } = req.body;
+      const { collection_name, referral_wallet_id } = req.body;
 
       const drop_exists = await drop_db.exists(collection_name);
       const collection_exists = await transaction_db.exists(collection_name);
@@ -24,6 +24,23 @@ const setEndpoints = (api) => {
       if (referral_exists) {
         console.log("referral exists", req.body);
         error(res, "referral has already been done", 403);
+        return;
+      }
+
+      // Check is a previous referral from last 24h
+      const has_referral_on_last_24h =
+        await referral_db.has_referral_on_last_24h(referral_wallet_id);
+
+      if (has_referral_on_last_24h) {
+        console.log(
+          "a referral has already been done in last 24h, try again tomorrow",
+          req.body
+        );
+        error(
+          res,
+          "a referral has already been done in last 24h, try again tomorrow",
+          403
+        );
         return;
       }
 

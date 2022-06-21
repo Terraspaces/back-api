@@ -38,6 +38,60 @@ const exists = async ({
   return;
 };
 
+const has_referral_on_last_24h = async (referral_wallet_id) => {
+  try {
+    const aggregation_pipeline = [
+      {
+        $match: {
+          $and: [
+            {
+              referral_wallet_id: referral_wallet_id,
+            },
+            {
+              $expr: {
+                $lt: [
+                  {
+                    $dateDiff: {
+                      startDate: "$created_at",
+                      endDate: "$$NOW",
+                      unit: "hour",
+                    },
+                  },
+                  24,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          referral_wallet_id: 1,
+        },
+      },
+      {
+        $group: {
+          _id: "$referral_wallet_id",
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+    ];
+
+    const results = await referralModel.aggregate(aggregation_pipeline);
+    if (!results || results.length <= 0) return false;
+
+    const { count } = results[0];
+    if (count <= 0) return false;
+
+    return true;
+  } catch (error) {
+    console.error(`${has_referral_on_last_24h.name} error:`, error);
+  }
+  return true;
+};
+
 const get_stats = async (wallet_id) => {
   try {
     const aggregation_pipeline = [
@@ -115,4 +169,4 @@ const get_stats = async (wallet_id) => {
   return;
 };
 
-module.exports = { add, exists, get_stats };
+module.exports = { add, exists, get_stats, has_referral_on_last_24h };
