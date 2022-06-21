@@ -18,14 +18,14 @@ const add = async (r) => {
 
 const exists = async ({
   collection_name,
-  referred_wallet_id,
+  // referred_wallet_id,
   referral_wallet_id,
 }) => {
   try {
     // Validate collection name against our drop table
     const r = await referralModel.findOne({
       collection_name,
-      referred_wallet_id,
+      // referred_wallet_id,
       referral_wallet_id,
     });
     if (!r) return false;

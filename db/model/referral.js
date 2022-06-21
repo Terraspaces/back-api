@@ -5,7 +5,7 @@ const referralSchema = new mongoose.Schema(
   {
     referral_wallet_id: String,
     collection_name: String,
-    referred_wallet_id: String,
+    // referred_wallet_id: String,
     approved: Boolean,
     rejected: Boolean,
     amount: Number,
