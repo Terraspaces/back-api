@@ -16,7 +16,7 @@ const getQueryParams = (req) => {
 const setEndpoints = (api) => {
   api.get("/drops", async (req, res) => {
     let { skip, limit } = getQueryParams(req);
-    const drops = await dropDb.getDrops({
+    const drops = await dropDb.get_drops({
       skip,
       limit,
     });
