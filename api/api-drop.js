@@ -1,7 +1,7 @@
 const dropDb = require("../db/drop");
 const transactionDb = require("../db/transaction");
 
-const getQueryParams = () => {
+const getQueryParams = (req) => {
   let skip = 0,
     limit = 0;
   if (Object.keys(req.query).includes("skip")) {
@@ -15,7 +15,7 @@ const getQueryParams = () => {
 
 const setEndpoints = (api) => {
   api.get("/drops", async (req, res) => {
-    let { skip, limit } = getQueryParams();
+    let { skip, limit } = getQueryParams(req);
     const drops = await dropDb.getDrops({
       skip,
       limit,
