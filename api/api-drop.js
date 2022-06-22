@@ -3,7 +3,7 @@ const transactionDb = require("../db/transaction");
 
 const getQueryParams = (req) => {
   let skip = 0,
-    limit = 0;
+    limit = 500;
   if (Object.keys(req.query).includes("skip")) {
     skip = req.query.skip;
   }
