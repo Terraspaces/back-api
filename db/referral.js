@@ -140,7 +140,12 @@ const get_stats = async (wallet_id) => {
                 if: {
                   $and: [
                     { $eq: ["$approved", true] },
-                    { $eq: ["$rejected", false] },
+                    {
+                      $or: [
+                        { $eq: ["$rejected", false] },
+                        { $exists: ["$rejected", false] },
+                      ],
+                    },
                   ],
                 },
                 then: "$amount",
