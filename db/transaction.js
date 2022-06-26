@@ -14,7 +14,7 @@ const mongoose = require("mongoose");
 // };
 
 // const CONTRACT_ACCOUNT_ID = "terraspaces-staking.near";
-
+const collection_name = "collections";
 const getTrendingCollectionData = async () => {
   const aggregation = [
     {
@@ -137,7 +137,7 @@ const getTrendingCollectionData = async () => {
     },
   ];
   const collectionsArray = await mongoose.connection
-    .collection("collections")
+    .collection(collection_name)
     .aggregate(aggregation)
     .toArray();
 
@@ -568,7 +568,7 @@ const getTransactionsForCollection = async (account_id) => {
   ];
 
   const collectionsArray = await mongoose.connection
-    .collection("collections")
+    .collection(collection_name)
     .aggregate(aggregation, { allowDiskUse: true })
     .toArray();
 
@@ -583,7 +583,47 @@ const getTransactionsForCollection = async (account_id) => {
 //   near = result;
 // });
 
+const get_collections_name = async () => {
+  let collectionsArray = [];
+  try {
+    const aggregation = [
+      {
+        $sort: {
+          name: 1,
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          _id: 0,
+        },
+      },
+    ];
+
+    collectionsArray = await mongoose.connection
+      .collection(collection_name)
+      .aggregate(aggregation, { allowDiskUse: true })
+      .toArray();
+  } catch (error) {
+    console.error(`${like.name} error:`, error);
+  }
+
+  return collectionsArray;
+};
+
+const exists = async (collection) => {
+  const results = await mongoose.connection
+    .collection(collection_name)
+    .find({ name: collection })
+    .toArray();
+  if (!results) return false;
+  if (results.length <= 0) return false;
+  return true;
+};
+
 module.exports = {
-  getTrendingCollectionData: getTrendingCollectionData,
-  getTransactionsForCollection: getTransactionsForCollection,
+  getTrendingCollectionData,
+  getTransactionsForCollection,
+  get_collections_name,
+  exists,
 };
