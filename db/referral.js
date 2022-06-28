@@ -92,15 +92,15 @@ const has_referral_on_last_24h = async (referral_wallet_id) => {
   return true;
 };
 
-const get_stats = async (wallet_id, staking_partners = false) => {
+const get_stats = async (wallet_id, staking_partners) => {
   try {
     const match_condition = {
       referral_wallet_id: wallet_id,
     };
-    if (!staking_partners) {
-      match_condition["collection_name"] = { $eq: "terraspaces.near" };
-    } else {
+    if (staking_partners == true) {
       match_condition["collection_name"] = { $ne: "terraspaces.near" };
+    } else {
+      match_condition["collection_name"] = { $eq: "terraspaces.near" };
     }
 
     const aggregation_pipeline = [
@@ -161,6 +161,7 @@ const get_stats = async (wallet_id, staking_partners = false) => {
 
     console.log("aggregation_pipeline", JSON.stringify(aggregation_pipeline));
     const r = await referralModel.aggregate(aggregation_pipeline);
+    console.log("r || r.length", r, r.length);
     if (!r || r.length <= 0)
       return {
         submitted: 0,
