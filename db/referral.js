@@ -158,6 +158,8 @@ const get_stats = async (wallet_id, staking_partners = false) => {
         },
       },
     ];
+
+    console.log("aggregation_pipeline", aggregation_pipeline);
     const r = await referralModel.aggregate(aggregation_pipeline);
     if (!r || r.length <= 0)
       return {
