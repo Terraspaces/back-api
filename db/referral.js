@@ -97,8 +97,11 @@ const get_stats = async (wallet_id, staking_partners = false) => {
     const match_condition = {
       referral_wallet_id: wallet_id,
     };
-    if (!staking_partners)
+    if (!staking_partners) {
       match_condition["collection_name"] = "terraspaces.near";
+    } else {
+      match_condition["collection_name"] = { $ne: "terraspaces.near" };
+    }
 
     const aggregation_pipeline = [
       {
