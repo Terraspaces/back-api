@@ -98,7 +98,7 @@ const get_stats = async (wallet_id, staking_partners = false) => {
       referral_wallet_id: wallet_id,
     };
     if (!staking_partners) {
-      match_condition["collection_name"] = "terraspaces.near";
+      match_condition["collection_name"] = { $eq: "terraspaces.near" };
     } else {
       match_condition["collection_name"] = { $ne: "terraspaces.near" };
     }
@@ -159,7 +159,7 @@ const get_stats = async (wallet_id, staking_partners = false) => {
       },
     ];
 
-    console.log("aggregation_pipeline", aggregation_pipeline);
+    console.log("aggregation_pipeline", JSON.stringify(aggregation_pipeline));
     const r = await referralModel.aggregate(aggregation_pipeline);
     if (!r || r.length <= 0)
       return {
