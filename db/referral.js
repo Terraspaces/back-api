@@ -92,7 +92,7 @@ const has_referral_on_last_24h = async (referral_wallet_id) => {
   return true;
 };
 
-const get_stats = async (wallet_id, staking_partners) => {
+const get_stats = async (wallet_id, staking_partners = false) => {
   try {
     const match_condition = {
       referral_wallet_id: wallet_id,
