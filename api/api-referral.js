@@ -70,11 +70,10 @@ const setEndpoints = (api) => {
     }
   });
 
-  api.get("/referral/:wallet_id/stats", async (req, res) => {
-    // const { collection_name } = req.body;
-    const { wallet_id } = req.params;
+  api.get("/referral/:wallet_id/stats/:staking_partners", async (req, res) => {
+    const { wallet_id, staking_partners } = req.params;
 
-    const stats = await referral_db.get_stats(wallet_id);
+    const stats = await referral_db.get_stats(wallet_id, staking_partners);
 
     res.send(stats);
   });

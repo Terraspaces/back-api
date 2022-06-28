@@ -92,13 +92,17 @@ const has_referral_on_last_24h = async (referral_wallet_id) => {
   return true;
 };
 
-const get_stats = async (wallet_id) => {
+const get_stats = async (wallet_id, staking_partners = false) => {
   try {
+    const match_condition = {
+      referral_wallet_id: wallet_id,
+    };
+    if (!staking_partners)
+      match_condition["collection_name"] = "terraspaces.near";
+
     const aggregation_pipeline = [
       {
-        $match: {
-          referral_wallet_id: wallet_id,
-        },
+        $match: match_condition,
       },
       {
         $group: {
@@ -106,20 +110,20 @@ const get_stats = async (wallet_id) => {
           submitted: {
             $sum: 1,
           },
-          pending: {
-            $sum: {
-              $cond: {
-                if: {
-                  $and: [
-                    { $eq: ["$approved", false] },
-                    { $eq: ["$rejected", false] },
-                  ],
-                },
-                then: "$amount",
-                else: 0,
-              },
-            },
-          },
+          // pending: {
+          //   $sum: {
+          //     $cond: {
+          //       if: {
+          //         $and: [
+          //           { $eq: ["$approved", false] },
+          //           { $eq: ["$rejected", false] },
+          //         ],
+          //       },
+          //       then: "$amount",
+          //       else: 0,
+          //     },
+          //   },
+          // },
           approved: {
             $sum: {
               $cond: {
@@ -166,7 +170,6 @@ const get_stats = async (wallet_id) => {
     console.error(`${add.name} error:`, error);
     throw new Error("could not add referral");
   }
-  return;
 };
 
 module.exports = { add, exists, get_stats, has_referral_on_last_24h };
