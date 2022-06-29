@@ -92,13 +92,20 @@ const has_referral_on_last_24h = async (referral_wallet_id) => {
   return true;
 };
 
-const get_stats = async (wallet_id) => {
+const get_stats = async (wallet_id, staking_partners = false) => {
   try {
+    const match_condition = {
+      referral_wallet_id: wallet_id,
+    };
+    if (staking_partners == true) {
+      match_condition["collection_name"] = { $ne: "terraspaces.near" };
+    } else {
+      match_condition["collection_name"] = { $eq: "terraspaces.near" };
+    }
+
     const aggregation_pipeline = [
       {
-        $match: {
-          referral_wallet_id: wallet_id,
-        },
+        $match: match_condition,
       },
       {
         $group: {
@@ -106,20 +113,20 @@ const get_stats = async (wallet_id) => {
           submitted: {
             $sum: 1,
           },
-          pending: {
-            $sum: {
-              $cond: {
-                if: {
-                  $and: [
-                    { $eq: ["$approved", false] },
-                    { $eq: ["$rejected", false] },
-                  ],
-                },
-                then: "$amount",
-                else: 0,
-              },
-            },
-          },
+          // pending: {
+          //   $sum: {
+          //     $cond: {
+          //       if: {
+          //         $and: [
+          //           { $eq: ["$approved", false] },
+          //           { $eq: ["$rejected", false] },
+          //         ],
+          //       },
+          //       then: "$amount",
+          //       else: 0,
+          //     },
+          //   },
+          // },
           approved: {
             $sum: {
               $cond: {
@@ -151,7 +158,10 @@ const get_stats = async (wallet_id) => {
         },
       },
     ];
+
+    console.log("aggregation_pipeline", JSON.stringify(aggregation_pipeline));
     const r = await referralModel.aggregate(aggregation_pipeline);
+    console.log("r || r.length", r, r.length);
     if (!r || r.length <= 0)
       return {
         submitted: 0,
@@ -166,7 +176,6 @@ const get_stats = async (wallet_id) => {
     console.error(`${add.name} error:`, error);
     throw new Error("could not add referral");
   }
-  return;
 };
 
 module.exports = { add, exists, get_stats, has_referral_on_last_24h };
