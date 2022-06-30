@@ -71,7 +71,7 @@ const setEndpoints = (api) => {
   api.get("/referral/:wallet_id/stats/staking_partners", async (req, res) => {
     const { wallet_id } = req.params;
     const stats = await referral_db.get_stats(wallet_id, true);
-
+    de;
     res.send(stats);
   });
 
