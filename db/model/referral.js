@@ -5,7 +5,10 @@ const referralSchema = new mongoose.Schema(
   {
     referral_wallet_id: String,
     collection_name: String,
-    // referred_wallet_id: String,
+    referred_by: {
+      type: String,
+      enum: ["Terraspaces", "Staking Partners"],
+    },
     approved: Boolean,
     rejected: Boolean,
     amount: Number,

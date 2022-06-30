@@ -33,7 +33,7 @@ const exists = async ({
     return true;
   } catch (error) {
     console.error(`${add.name} error:`, error);
-    throw new Error("could not add referral");
+    throw new Error("could not find referral");
   }
   return;
 };

@@ -46,16 +46,14 @@ const setEndpoints = (api) => {
 
       const { _id } = await referral_db.add(req.body);
 
-      console.log("process.env.TRANSACTIONS_API", process.env.TRANSACTIONS_API);
-      const response = await fetch(
-        `${process.env.TRANSACTIONS_API}/referral/calculate/${_id}`,
-        {
-          method: "POST",
-          headers: {
-            "x-api-key": process.env.TRANSACTIONS_API_KEY,
-          },
-        }
-      );
+      const url = `${process.env.TRANSACTIONS_API}/referral/calculate/${_id}`;
+      console.log("request url", url);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "x-api-key": process.env.TRANSACTIONS_API_KEY,
+        },
+      });
 
       if (response.status != 200) {
         console.error(
