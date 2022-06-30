@@ -16,23 +16,17 @@ const add = async (r) => {
   }
 };
 
-const exists = async ({
-  collection_name,
-  // referred_wallet_id,
-  referral_wallet_id,
-}) => {
+const exists = async ({ collection_name, referral_wallet_id }) => {
   try {
-    // Validate collection name against our drop table
     const r = await referralModel.findOne({
-      collection_name,
-      // referred_wallet_id,
+      referred_by,
       referral_wallet_id,
     });
     if (!r) return false;
 
     return true;
   } catch (error) {
-    console.error(`${add.name} error:`, error);
+    console.error(`${exists.name} error:`, error);
     throw new Error("could not find referral");
   }
   return;
@@ -94,18 +88,14 @@ const has_referral_on_last_24h = async (referral_wallet_id) => {
 
 const get_stats = async (wallet_id, staking_partners = false) => {
   try {
-    const match_condition = {
-      referral_wallet_id: wallet_id,
-    };
-    if (staking_partners == true) {
-      match_condition["collection_name"] = { $ne: "terraspaces.near" };
-    } else {
-      match_condition["collection_name"] = { $eq: "terraspaces.near" };
-    }
-
+    const referred_by = staking_partners ? "Staking Partners": "Terraspaces";
+    
     const aggregation_pipeline = [
       {
-        $match: match_condition,
+        $match: {
+          referral_wallet_id: wallet_id,
+          referred_by: referred_by,
+        },
       },
       {
         $group: {
@@ -113,20 +103,6 @@ const get_stats = async (wallet_id, staking_partners = false) => {
           submitted: {
             $sum: 1,
           },
-          // pending: {
-          //   $sum: {
-          //     $cond: {
-          //       if: {
-          //         $and: [
-          //           { $eq: ["$approved", false] },
-          //           { $eq: ["$rejected", false] },
-          //         ],
-          //       },
-          //       then: "$amount",
-          //       else: 0,
-          //     },
-          //   },
-          // },
           approved: {
             $sum: {
               $cond: {
@@ -145,10 +121,7 @@ const get_stats = async (wallet_id, staking_partners = false) => {
             $sum: {
               $cond: {
                 if: {
-                  $and: [
-                    { $eq: ["$approved", true] },
-                    // { $eq: ["$rejected", false] },
-                  ],
+                  $and: [{ $eq: ["$approved", true] }],
                 },
                 then: "$amount",
                 else: 0,
@@ -159,7 +132,6 @@ const get_stats = async (wallet_id, staking_partners = false) => {
       },
     ];
 
-    console.log("aggregation_pipeline", JSON.stringify(aggregation_pipeline));
     const r = await referralModel.aggregate(aggregation_pipeline);
     console.log("r || r.length", r, r.length);
     if (!r || r.length <= 0)
@@ -167,14 +139,14 @@ const get_stats = async (wallet_id, staking_partners = false) => {
         submitted: 0,
         approved: 0,
         amount: 0,
-        pending: 0,
+        referred_by: ,
         _id: wallet_id,
       };
 
     return r[0];
   } catch (error) {
-    console.error(`${add.name} error:`, error);
-    throw new Error("could not add referral");
+    console.error(`${get_stats.name} error:`, error);
+    throw new Error("could not get stats");
   }
 };
 
