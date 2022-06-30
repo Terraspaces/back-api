@@ -88,8 +88,8 @@ const has_referral_on_last_24h = async (referral_wallet_id) => {
 
 const get_stats = async (wallet_id, staking_partners = false) => {
   try {
-    const referred_by = staking_partners ? "Staking Partners": "Terraspaces";
-    
+    const referred_by = staking_partners ? "Staking Partners" : "Terraspaces";
+
     const aggregation_pipeline = [
       {
         $match: {
@@ -139,7 +139,7 @@ const get_stats = async (wallet_id, staking_partners = false) => {
         submitted: 0,
         approved: 0,
         amount: 0,
-        referred_by: ,
+        referred_by,
         _id: wallet_id,
       };
 
