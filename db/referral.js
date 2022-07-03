@@ -16,7 +16,7 @@ const add = async (r) => {
   }
 };
 
-const exists = async ({ collection_name, referral_wallet_id }) => {
+const exists = async ({ referred_by, referral_wallet_id }) => {
   try {
     const r = await referralModel.findOne({
       referred_by,
