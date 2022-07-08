@@ -107,10 +107,7 @@ const get_stats = async (wallet_id, staking_partners = false) => {
             $sum: {
               $cond: {
                 if: {
-                  $and: [
-                    { $eq: ["$approved", true] },
-                    { $eq: ["$rejected", false] },
-                  ],
+                  $and: [{ $eq: ["$approved", true] }],
                 },
                 then: 1,
                 else: 0,
