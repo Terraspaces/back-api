@@ -11,14 +11,15 @@ const setEndpoints = (api) => {
     try {
       const { collection_name, referral_wallet_id } = req.body;
 
-      const drop_exists = await drop_db.exists(collection_name);
-      const collection_exists = await transaction_db.exists(collection_name);
+      //
+      // const drop_exists = await drop_db.exists(collection_name);
+      // const collection_exists = await transaction_db.exists(collection_name);
 
-      if (!drop_exists && !collection_exists) {
-        console.log("collection_name", collection_name);
-        error(res, "collection doesn't exists", 403);
-        return;
-      }
+      // if (!drop_exists && !collection_exists) {
+      //   console.log("collection_name", collection_name);
+      //   error(res, "collection doesn't exists", 403);
+      //   return;
+      // }
 
       const referral_exists = await referral_db.exists(req.body);
       if (referral_exists) {
