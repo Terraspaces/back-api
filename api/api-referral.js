@@ -82,6 +82,14 @@ const setEndpoints = (api) => {
 
     res.send(stats);
   });
+
+  api.get("/referral/:wallet_id/status", async (req, res) => {
+    const { wallet_id } = req.params;
+
+    const has_referral = await referral_db.has_referral_on_last_24h(wallet_id);
+
+    res.send({ has_referral });
+  });
 };
 
 module.exports = { setEndpoints };
