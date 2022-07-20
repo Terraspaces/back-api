@@ -148,7 +148,7 @@ const getTrendingCollectionData = async () => {
   return trending_collections;
 };
 
-const getTransactionsForCollection = async (account_id) => {
+const getTransactionsForCollection = async (account_id, skip, limit) => {
   const aggregation = [
     {
       $facet: {
@@ -564,6 +564,12 @@ const getTransactionsForCollection = async (account_id) => {
     },
     {
       $project: { list: 0, minMax: 0 },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
     },
   ];
 
