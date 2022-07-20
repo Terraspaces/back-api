@@ -171,6 +171,12 @@ const getTransactionsForCollection = async (account_id, skip, limit) => {
             $unwind: "$statistics",
           },
           {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+          {
             $addFields: {
               created_at_date: {
                 $dateToString: {
@@ -245,9 +251,16 @@ const getTransactionsForCollection = async (account_id, skip, limit) => {
               updated_at: 0,
             },
           },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
         ],
       },
     },
+
     {
       $unwind: "$list",
     },
@@ -564,12 +577,6 @@ const getTransactionsForCollection = async (account_id, skip, limit) => {
     },
     {
       $project: { list: 0, minMax: 0 },
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
     },
   ];
 
