@@ -148,7 +148,7 @@ const getTrendingCollectionData = async () => {
   return trending_collections;
 };
 
-const getTransactionsForCollection = async (account_id, skip, limit) => {
+const old_getTransactionsForCollection = async (account_id, skip, limit) => {
   const aggregation = [
     {
       $facet: {
@@ -575,6 +575,25 @@ const getTransactionsForCollection = async (account_id, skip, limit) => {
 
   const collectionsArray = await mongoose.connection
     .collection(collection_name)
+    .aggregate(aggregation, { allowDiskUse: true })
+    .toArray();
+
+  console.log("keys: ", Object.keys(collectionsArray[0]));
+  const { statistics } = collectionsArray[0];
+
+  return statistics;
+};
+
+const getTransactionsForCollection = async (account_id) => {
+  const aggregation = [
+    { $match: { name: account_id } },
+    { $sort: { created_at: -1 } },
+    { $limit: 1 },
+    { $project: { statistics: 1 } },
+  ];
+
+  const collectionsArray = await mongoose.connection
+    .collection("tempstatistics")
     .aggregate(aggregation, { allowDiskUse: true })
     .toArray();
 
