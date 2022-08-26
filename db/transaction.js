@@ -248,6 +248,7 @@ const old_getTransactionsForCollection = async (account_id, skip, limit) => {
         ],
       },
     },
+
     {
       $unwind: "$list",
     },
@@ -565,12 +566,6 @@ const old_getTransactionsForCollection = async (account_id, skip, limit) => {
     {
       $project: { list: 0, minMax: 0 },
     },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
-    },
   ];
 
   const collectionsArray = await mongoose.connection
@@ -584,12 +579,12 @@ const old_getTransactionsForCollection = async (account_id, skip, limit) => {
   return statistics;
 };
 
-const getTransactionsForCollection = async (account_id) => {
+const getTransactionsForCollection = async (account_id, skip, limit) => {
   const aggregation = [
     { $match: { name: account_id } },
     { $sort: { created_at: -1 } },
     { $limit: 1 },
-    { $project: { statistics: 1 } },
+    { $project: { statistics: { $slice: ["$statistics", skip, limit] } } },
   ];
 
   const collectionsArray = await mongoose.connection
