@@ -586,7 +586,7 @@ const getTransactionsForCollection = async (account_id, skip, limit) => {
     { $sort: { created_at: -1 } },
     { $limit: 1 },
     { $unwind: "$statistics" },
-    { $sort: { "$statistics.created_at": -1 } },
+    { $sort: { "statistics.created_at": -1 } },
     {
       $skip: skip,
     },
