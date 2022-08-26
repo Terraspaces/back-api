@@ -580,11 +580,19 @@ const old_getTransactionsForCollection = async (account_id, skip, limit) => {
 };
 
 const getTransactionsForCollection = async (account_id, skip, limit) => {
+  console.log("skip, limit", skip, limit);
   const aggregation = [
     { $match: { name: account_id } },
     { $sort: { created_at: -1 } },
     { $limit: 1 },
-    { $project: { statistics: { $slice: ["$statistics", skip, limit] } } },
+    { $unwind: "$statistics" },
+    { $sort: { "$statistics.created_at": -1 } },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
   ];
 
   const collectionsArray = await mongoose.connection
