@@ -85,7 +85,7 @@ const like = async ({ drop_name, account_id }) => {
       .collection(collection_name)
       .updateMany({ name: drop_name }, { $push: { likes: account_id } });
 
-    console.log("updateResults: ", updateResults);
+    console.log("updateResults: ", JSON.stringify(updateResults));
   } catch (error) {
     console.error(`${like.name} error:`, error);
   }
@@ -101,7 +101,7 @@ const unlike = async ({ drop_name, account_id }) => {
       .collection(collection_name)
       .updateMany({ name: drop_name }, { $pull: { likes: account_id } });
 
-    console.log("updateResults: ", updateResults);
+    console.log("updateResults: ", JSON.stringify(updateResults));
   } catch (error) {
     console.error(`${unlike.name} error:`, error);
   }
