@@ -8,7 +8,13 @@ const setEndpoints = (api) => {
 
   api.post("/statistic_data", async (req, res) => {
     let skip = 0;
-    let limit = 100;
+    let limit = 1000;
+    if (req.body.skip) {
+      skip = parseInt(req.body.skip);
+    }
+    if (req.body.limit) {
+      limit = parseInt(req.body.limit);
+    }
     const results = await transactionDb.getTransactionsForCollection(
       req.body.account_id,
       skip,
