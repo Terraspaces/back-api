@@ -84,8 +84,6 @@ const like = async ({ drop_name, account_id }) => {
     const updateResults = await mongoose.connection
       .collection(collection_name)
       .updateMany({ name: drop_name }, { $push: { likes: account_id } });
-
-    console.log("updateResults: ", JSON.stringify(updateResults));
   } catch (error) {
     console.error(`${like.name} error:`, error);
   }

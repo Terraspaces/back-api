@@ -147,6 +147,11 @@ const getTransactionsForCollection = async (account_id, skip, limit) => {
     {
       $limit: limit,
     },
+    {
+      $addFields: {
+        _id: "",
+      },
+    },
   ];
 
   const collectionsArray = await mongoose.connection
